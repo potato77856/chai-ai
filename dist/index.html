@@ -220,7 +220,7 @@
       }
       .actions {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: 1fr;
         gap: 10px;
         padding: 14px;
         border-top: 1px solid var(--line);
@@ -259,6 +259,16 @@
       h2 {
         margin: 0;
         font-size: 18px;
+      }
+      .result-tools {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .result-tools .btn {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 13px;
       }
       .status {
         min-height: 30px;
@@ -654,14 +664,16 @@
 
           <div class="actions">
             <button class="btn primary" id="submitBtn" type="button">开始</button>
-            <button class="btn" id="clearBtn" type="button">清空</button>
           </div>
         </aside>
 
         <section class="panel result">
           <div class="result-head">
             <h2 id="resultTitle">聊天</h2>
-            <span class="status" id="status">等待开始</span>
+            <div class="result-tools">
+              <span class="status" id="status">等待开始</span>
+              <button class="btn" id="clearBtn" type="button">清空生成图</button>
+            </div>
           </div>
           <div class="output" id="output"></div>
           <div class="chat-composer hidden" id="chatComposer">
@@ -862,10 +874,11 @@
         closeImagePreview: $("closeImagePreview"),
         output: $("output"),
         submitBtn: $("submitBtn"),
+        clearBtn: $("clearBtn"),
         toast: $("toast"),
       };
 
-      let currentMode = "chat";
+      let currentMode = "image";
       let apiKey = "";
       let baseUrl = "https://chaiapi.com/v1";
       let preferredModel = "";
@@ -887,8 +900,8 @@
         if (manualChatModels.length) detectedModelsByMode.chat = manualChatModels;
         lastTaskId = localStorage.getItem("chaiai_last_task_id") || "";
         loadChatSessions();
-        setMode("chat");
-        if (apiKey && !manualChatModels.length) detectModels({ mode: "chat", silent: true });
+        setMode("image");
+        if (apiKey) detectModels({ mode: "image", silent: true });
       }
 
       function readLaunchParams() {
@@ -938,6 +951,8 @@
         els.referenceField.classList.toggle("hidden", mode !== "image");
         els.chatComposer.classList.toggle("hidden", mode !== "chat");
         els.status.classList.toggle("hidden", mode === "image" || mode === "video");
+        els.clearBtn.textContent = mode === "image" ? "清空生成图" : mode === "video" ? "清空结果" : "清空对话";
+        els.clearBtn.classList.toggle("hidden", false);
         els.topPromptBankBtn.classList.toggle("hidden", mode !== "image" && mode !== "video");
         document.querySelector(".actions").classList.toggle("hidden", mode === "chat");
         els.modelField.classList.toggle("hidden", false);
