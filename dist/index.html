@@ -1,0 +1,1952 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChaiAI</title>
+    <style>
+      :root {
+        --bg: #f5f8fa;
+        --panel: #ffffff;
+        --line: #e5ebf1;
+        --line-strong: #cbd5e1;
+        --text: #172033;
+        --muted: #667085;
+        --soft: #eef5f8;
+        --accent: #0f8a76;
+        --accent-strong: #087461;
+        --accent-soft: #e3f5f1;
+        --coral: #e95f5c;
+        --coral-strong: #d94d4a;
+        --warm: #fff2cc;
+        --warm-text: #946200;
+        --danger: #c43d3d;
+        --danger-soft: #fff0ef;
+        --shadow: 0 18px 42px rgba(18, 31, 52, 0.08);
+        --radius: 12px;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; }
+      body {
+        margin: 0;
+        color: var(--text);
+        background: var(--bg);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      button, input, select, textarea { font: inherit; }
+      button { border: 0; cursor: pointer; }
+      button:disabled { cursor: not-allowed; opacity: .58; }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: 74px auto 1fr;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 34px;
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid #dce6ee;
+        box-shadow: 0 8px 18px rgba(15, 138, 118, .14);
+        object-fit: contain;
+        padding: 4px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+      .prompt-bank-top {
+        min-height: 44px;
+        border-radius: 999px;
+        padding: 0 20px;
+        color: #fff;
+        background: var(--coral);
+        box-shadow: 0 12px 22px rgba(233, 95, 92, .24);
+        font-weight: 900;
+      }
+      .prompt-bank-top:hover { background: var(--coral-strong); }
+      .prompt-bank-top:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      .notice {
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 24px;
+        color: var(--warm-text);
+        background: var(--warm);
+        border-bottom: 1px solid #efd68c;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .workspace {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 340px minmax(0, 1fr);
+        gap: 14px;
+        padding: 18px 34px 20px;
+      }
+      .panel {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+      .controls {
+        display: grid;
+        grid-template-rows: 1fr auto;
+      }
+      .feature-picker {
+        padding: 14px 14px 0;
+      }
+      .feature-tabs {
+        display: none;
+        padding: 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .feature-btn {
+        min-height: 38px;
+        border-radius: var(--radius);
+        color: #475467;
+        background: #f0f3f6;
+        font-size: 13px;
+        font-weight: 850;
+      }
+      .feature-btn.active {
+        color: var(--accent);
+        background: var(--accent-soft);
+        box-shadow: inset 0 0 0 1px rgba(15, 118, 110, .22);
+      }
+      .form {
+        overflow: auto;
+        padding: 14px;
+      }
+      .field {
+        display: grid;
+        gap: 7px;
+        margin-bottom: 14px;
+      }
+      .field-action {
+        justify-self: start;
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+      .recover-box {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .helper {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .token-hint {
+        margin-top: -4px;
+        color: #85620c;
+        background: #fff7d8;
+        border: 1px solid #efd68c;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .label {
+        font-size: 13px;
+        font-weight: 850;
+      }
+      input, select, textarea {
+        width: 100%;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: #fff;
+        color: var(--text);
+        outline: 0;
+      }
+      input, select { height: 40px; padding: 0 10px; }
+      textarea {
+        min-height: 180px;
+        resize: vertical;
+        padding: 10px;
+        line-height: 1.55;
+      }
+      input:focus, select:focus, textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, .12);
+      }
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .chat-session-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 8px;
+      }
+      .chat-session-row .btn {
+        min-height: 40px;
+        padding: 0 11px;
+      }
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .btn {
+        min-height: 40px;
+        border-radius: var(--radius);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        color: var(--text);
+        background: #edf1f5;
+        font-weight: 850;
+      }
+      .btn.primary {
+        color: #fff;
+        background: var(--accent);
+        box-shadow: 0 12px 24px rgba(15, 138, 118, .18);
+      }
+      .btn.primary:hover { background: var(--accent-strong); }
+
+      .result {
+        min-height: 0;
+        display: grid;
+        grid-template-rows: 56px 1fr auto;
+      }
+      .result-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+      .status {
+        min-height: 30px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 11px;
+        color: #475467;
+        background: #f0f3f6;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .output {
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+        padding: 16px;
+        background: var(--soft);
+      }
+      .chat-composer {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 12px;
+        border-top: 1px solid var(--line);
+        background: #fff;
+      }
+      .chat-input-wrap {
+        min-width: 0;
+        display: grid;
+        gap: 8px;
+      }
+      .chat-composer textarea {
+        min-height: 44px;
+        max-height: 150px;
+        resize: vertical;
+      }
+      .chat-composer .btn {
+        min-width: 88px;
+        align-self: end;
+      }
+      .attachment-tray {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .reference-tray {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .attachment-item {
+        position: relative;
+        width: 70px;
+        height: 70px;
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: #f8fafc;
+      }
+      .attachment-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .attachment-remove {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        color: #fff;
+        background: rgba(17, 24, 39, .72);
+        font-size: 14px;
+        line-height: 1;
+      }
+      .chat-thread {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .message {
+        max-width: 78%;
+        border-radius: var(--radius);
+        padding: 11px 13px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .message.user {
+        align-self: flex-end;
+        color: #fff;
+        background: var(--accent);
+      }
+      .message-attachments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .message-attachments img {
+        max-width: 140px;
+        max-height: 140px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, .45);
+      }
+      .message.assistant {
+        align-self: flex-start;
+        background: #fff;
+        border: 1px solid var(--line);
+      }
+      .message.system {
+        align-self: center;
+        max-width: 100%;
+        color: var(--muted);
+        background: #fff;
+        border: 1px solid var(--line);
+      }
+      .message.error {
+        color: var(--danger);
+        background: var(--danger-soft);
+        border-color: #efc1bf;
+      }
+      .diagnostic-actions {
+        margin-top: 12px;
+      }
+      .empty {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        color: #7c8798;
+        text-align: center;
+      }
+      .empty-visual {
+        width: 82px;
+        height: 82px;
+        margin: 0 auto 18px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: #fff;
+        border: 4px solid #87929f;
+        box-shadow: 0 10px 24px rgba(18, 31, 52, .08);
+        font-size: 44px;
+      }
+      .empty h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+      .empty p {
+        margin: 0;
+        line-height: 1.55;
+      }
+      .image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+      }
+      .thumb {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: grid;
+        place-items: center;
+        border: 0;
+        padding: 0;
+        background: #eef2f6;
+        cursor: zoom-in;
+      }
+      .thumb:disabled {
+        cursor: default;
+        opacity: 1;
+      }
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .card-body {
+        padding: 11px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .card-body a {
+        color: var(--accent);
+        font-weight: 850;
+      }
+      pre {
+        margin: 0;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.55;
+      }
+      video {
+        width: 100%;
+        border-radius: var(--radius);
+        background: #000;
+      }
+      .hidden { display: none !important; }
+      .toast {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        max-width: min(440px, calc(100vw - 36px));
+        padding: 12px 14px;
+        border-radius: var(--radius);
+        color: #fff;
+        background: #172033;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, .2);
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition: .18s ease;
+        z-index: 20;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        background: rgba(15, 23, 42, .34);
+        z-index: 30;
+      }
+      .modal {
+        width: min(760px, 100%);
+        max-height: min(720px, calc(100vh - 36px));
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        border-radius: var(--radius);
+        background: #fff;
+        box-shadow: 0 26px 80px rgba(15, 23, 42, .24);
+      }
+      .modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .modal-head h3 {
+        margin: 0;
+        font-size: 17px;
+      }
+      .modal-list {
+        overflow: auto;
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+      }
+      .preview-modal {
+        width: min(960px, 100%);
+      }
+      .preview-body {
+        min-height: 0;
+        overflow: auto;
+        padding: 14px;
+        background: #0f172a;
+      }
+      .preview-body img {
+        width: 100%;
+        max-height: calc(100vh - 160px);
+        object-fit: contain;
+        display: block;
+      }
+      .prompt-card {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #f8fafc;
+        text-align: left;
+      }
+      .prompt-card strong {
+        font-size: 14px;
+      }
+      .prompt-card span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 860px) {
+        .app { grid-template-rows: auto 1fr; }
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 14px;
+        }
+        .workspace {
+          grid-template-columns: 1fr;
+          padding: 10px;
+        }
+        .result { min-height: 560px; }
+        .chat-composer { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand">
+          <img class="logo" src="assets/chai-logo.png" alt="ChaiAI" />
+          <h1>ChaiAI</h1>
+        </div>
+        <button class="prompt-bank-top" id="topPromptBankBtn" type="button">AI提示词库</button>
+      </header>
+      <div class="notice">生成记录仅保存在浏览器缓存，请及时保存到本地。生成图片或视频时，请勿刷新或关闭网页。</div>
+
+      <section class="workspace">
+        <aside class="panel controls">
+          <section class="form">
+            <div class="field">
+              <div class="label">功能</div>
+              <select id="featureSelect">
+                <option value="chat">聊天</option>
+                <option value="image">图像生成</option>
+                <option value="video">视频生成</option>
+              </select>
+            </div>
+
+            <div class="field" id="modelField">
+              <div class="label">模型</div>
+              <select id="model"></select>
+              <p class="token-hint">当前模型来源于最后一次创建的令牌密钥，推荐使用 AUTO 分组，体验更多模型。</p>
+              <button class="btn field-action" id="detectModelsBtn" type="button">检测可用模型</button>
+            </div>
+
+            <div class="field hidden" id="chatSessionField">
+              <div class="label">对话记录</div>
+              <div class="chat-session-row">
+                <select id="chatSessionSelect"></select>
+                <button class="btn" id="newChatBtn" type="button">新建</button>
+                <button class="btn" id="deleteChatBtn" type="button">删除</button>
+              </div>
+            </div>
+
+            <div class="row2" id="optionRow">
+              <div class="field" id="sizeField">
+                <div class="label" id="sizeLabel">分辨率</div>
+                <select id="size"></select>
+              </div>
+              <div class="field" id="countField">
+                <div class="label" id="countLabel">数量</div>
+                <select id="count"></select>
+              </div>
+            </div>
+
+            <div class="field hidden" id="streamField">
+              <div class="label">回复模式</div>
+              <select id="stream">
+                <option value="true">流式输出</option>
+                <option value="false">完整输出</option>
+              </select>
+            </div>
+
+            <div class="field" id="promptField">
+              <div class="label" id="promptLabel">提示词</div>
+              <textarea id="prompt" placeholder="输入你想让 AI 完成的内容"></textarea>
+            </div>
+
+            <div class="field hidden" id="referenceField">
+              <div class="label">参考图片</div>
+              <p class="helper">在提示词输入框里直接粘贴图片，可用于图生图或改图。</p>
+              <div class="reference-tray hidden" id="referenceTray"></div>
+            </div>
+
+            <div class="recover-box hidden" id="recoverBox">
+              <button class="btn" id="recoverBtn" type="button">继续查看上次视频</button>
+              <p class="helper">如果上次生成的视频还在处理中，可以继续查看进度或结果。</p>
+            </div>
+          </section>
+
+          <div class="actions">
+            <button class="btn primary" id="submitBtn" type="button">开始</button>
+            <button class="btn" id="clearBtn" type="button">清空</button>
+          </div>
+        </aside>
+
+        <section class="panel result">
+          <div class="result-head">
+            <h2 id="resultTitle">聊天</h2>
+            <span class="status" id="status">等待开始</span>
+          </div>
+          <div class="output" id="output"></div>
+          <div class="chat-composer hidden" id="chatComposer">
+            <div class="chat-input-wrap">
+              <textarea id="chatInput" placeholder="输入消息，支持粘贴图片"></textarea>
+              <div class="attachment-tray hidden" id="attachmentTray"></div>
+            </div>
+            <button class="btn primary" id="chatSendBtn" type="button">发送</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+    <div class="modal-backdrop hidden" id="promptBankModal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="promptBankTitle">
+        <div class="modal-head">
+          <h3 id="promptBankTitle">AI提示词库</h3>
+          <button class="btn" id="closePromptBank" type="button">关闭</button>
+        </div>
+        <div class="modal-list" id="promptBankList"></div>
+      </div>
+    </div>
+    <div class="modal-backdrop hidden" id="imagePreviewModal">
+      <div class="modal preview-modal" role="dialog" aria-modal="true" aria-labelledby="imagePreviewTitle">
+        <div class="modal-head">
+          <h3 id="imagePreviewTitle">图片预览</h3>
+          <button class="btn" id="closeImagePreview" type="button">关闭</button>
+        </div>
+        <div class="preview-body">
+          <img id="imagePreview" alt="生成图片预览" />
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const promptBank = {
+        image: [
+          {
+            title: "商品主图",
+            text: "一张高级电商商品主图，主体清晰居中，干净背景，柔和棚拍光，真实材质细节，高级商业摄影风格，画面简洁，适合社交媒体和电商展示。",
+          },
+          {
+            title: "人物海报",
+            text: "一张电影感人物海报，主体站在城市夜景中，浅景深，轮廓光，细腻皮肤质感，高对比但自然，构图稳定，情绪克制，专业商业海报风格。",
+          },
+          {
+            title: "国风插画",
+            text: "一幅精致国风插画，山水云雾、亭台楼阁、细腻线条，色彩清雅，层次丰富，画面有留白，传统东方美学，适合作为封面视觉。",
+          },
+          {
+            title: "图标素材",
+            text: "一个干净现代的应用图标，主体明确，几何构图，柔和阴影，高辨识度，简洁背景，适合移动应用和网页产品使用。",
+          },
+        ],
+        video: [
+          {
+            title: "产品展示短片",
+            text: "一个产品展示短片，镜头从产品正面缓慢推进，随后环绕展示细节，背景简洁高级，柔和棚拍灯光，质感真实，节奏平稳，商业广告风格。",
+          },
+          {
+            title: "城市电影镜头",
+            text: "夜晚的城市街道，霓虹灯反射在地面，一位主角缓慢走过镜头，镜头轻微跟随，电影感构图，浅景深，光影层次丰富，氛围安静而高级。",
+          },
+          {
+            title: "自然风景运镜",
+            text: "清晨山谷云雾缓慢流动，镜头从低空平稳向前推进，阳光穿过薄雾，画面自然真实，色彩柔和，纪录片风格，节奏舒缓。",
+          },
+          {
+            title: "故事板格式",
+            text: "Shot 1:\nduration: 3sec\nScene: 主体出现在简洁背景中，镜头缓慢推进，建立场景和情绪。\n\nShot 2:\nduration: 3sec\nScene: 镜头切到主体细节，突出动作、材质和光影。\n\nShot 3:\nduration: 4sec\nScene: 镜头拉远，展示完整画面，形成清晰结尾。",
+          },
+        ],
+      };
+
+      const featureConfig = {
+        chat: {
+          title: "聊天",
+          promptLabel: "对话内容",
+          placeholder: "输入你想问的问题，右侧会显示对话。",
+          sizes: [],
+          showStream: true,
+          showOptions: false,
+        },
+        image: {
+          title: "图像生成",
+          promptLabel: "图像提示词",
+          placeholder: "描述你想生成的画面，例如主体、场景、风格、构图和比例。",
+          sizes: [],
+          sizeLabel: "分辨率",
+          countLabel: "数量",
+          showStream: false,
+          showOptions: true,
+        },
+        video: {
+          title: "视频生成",
+          promptLabel: "视频提示词",
+          placeholder: "描述视频内容、镜头、动作和风格。提交后会自动显示进度。",
+          sizes: [],
+          sizeLabel: "画面尺寸",
+          countLabel: "秒数",
+          showStream: false,
+          showOptions: true,
+        },
+      };
+
+      const modelOptions = {
+        image: {
+          "gpt-image-2": {
+            sizes: ["auto", "1024x1024", "1024x1536", "1536x1024", "1024x1792", "1792x1024", "2048x2048", "1k", "2k", "4k"],
+          },
+          "gpt-image-2-pro": {
+            sizes: ["auto", "1024x1024", "1024x1536", "1536x1024", "1024x1792", "1792x1024", "2048x2048", "1k", "2k", "4k"],
+          },
+          "gpt-image-1": {
+            sizes: ["auto", "256x256", "512x512", "1024x1024", "1024x1536", "1536x1024"],
+          },
+          "dall-e-3": {
+            sizes: ["auto", "1024x1024", "1792x1024", "1024x1792", "16:9", "9:16", "1:1"],
+          },
+          "dall-e-2": {
+            sizes: ["auto", "256x256", "512x512", "1024x1024", "1:1"],
+          },
+          "doubao-seedream-4-0-250828": {
+            sizes: ["auto", "1k", "2k", "4k", "1024x1024", "2048x2048", "16:9", "9:16", "1:1"],
+          },
+          "gemini-2.5-flash-image": {
+            sizes: ["auto", "1024x1024", "1024x1536", "1536x1024", "16:9", "9:16", "1:1"],
+          },
+          "sora_image": {
+            sizes: ["auto", "1024x1024", "1024x1792", "1792x1024", "16:9", "9:16", "1:1"],
+          },
+        },
+        video: {
+          "sora-2": {
+            sizes: ["auto", "720x1280", "1280x720", "9:16", "16:9", "1:1"],
+            counts: ["auto", "6", "10", "15", "25"],
+          },
+          "sora-2-hd": {
+            sizes: ["auto", "1024x1792", "1792x1024", "9:16", "16:9", "1:1"],
+            counts: ["auto", "6", "10", "15", "25"],
+          },
+          "veo_3_1-fast": {
+            sizes: ["auto", "720x1280", "1280x720", "9:16", "16:9", "1:1"],
+            counts: ["auto", "6", "10", "15"],
+          },
+          "grok-imagine-1.0-video": {
+            sizes: ["auto", "16:9", "9:16", "1:1", "2:3", "3:2"],
+            counts: ["auto", "6", "10", "15"],
+            sizeLabel: "宽高比",
+            countLabel: "秒数",
+          },
+          "sora_video2": {
+            sizes: ["auto", "720x1280", "1280x720", "9:16", "16:9", "1:1"],
+            counts: ["auto", "6", "10", "15", "25"],
+          },
+        },
+      };
+
+      const $ = (id) => document.getElementById(id);
+      const els = {
+        topPromptBankBtn: $("topPromptBankBtn"),
+        featureSelect: $("featureSelect"),
+        model: $("model"),
+        modelField: $("modelField"),
+        detectModelsBtn: $("detectModelsBtn"),
+        size: $("size"),
+        sizeField: $("sizeField"),
+        sizeLabel: $("sizeLabel"),
+        count: $("count"),
+        countField: $("countField"),
+        countLabel: $("countLabel"),
+        optionRow: $("optionRow"),
+        stream: $("stream"),
+        streamField: $("streamField"),
+        chatSessionField: $("chatSessionField"),
+        chatSessionSelect: $("chatSessionSelect"),
+        newChatBtn: $("newChatBtn"),
+        deleteChatBtn: $("deleteChatBtn"),
+        recoverBox: $("recoverBox"),
+        recoverBtn: $("recoverBtn"),
+        prompt: $("prompt"),
+        promptField: $("promptField"),
+        promptLabel: $("promptLabel"),
+        referenceField: $("referenceField"),
+        referenceTray: $("referenceTray"),
+        chatComposer: $("chatComposer"),
+        chatInput: $("chatInput"),
+        attachmentTray: $("attachmentTray"),
+        chatSendBtn: $("chatSendBtn"),
+        resultTitle: $("resultTitle"),
+        status: $("status"),
+        promptBankModal: $("promptBankModal"),
+        promptBankList: $("promptBankList"),
+        closePromptBank: $("closePromptBank"),
+        imagePreviewModal: $("imagePreviewModal"),
+        imagePreview: $("imagePreview"),
+        closeImagePreview: $("closeImagePreview"),
+        output: $("output"),
+        submitBtn: $("submitBtn"),
+        toast: $("toast"),
+      };
+
+      let currentMode = "chat";
+      let apiKey = "";
+      let baseUrl = "https://chaiapi.com/v1";
+      let preferredModel = "";
+      let manualChatModels = [];
+      let detectedModelsByMode = { chat: null, image: null, video: null };
+      let chatStarted = false;
+      let lastTaskId = "";
+      let chatAttachments = [];
+      let imageReferences = [];
+      let chatSessions = [];
+      let activeChatId = "";
+
+      function init() {
+        const params = readLaunchParams();
+        apiKey = params.get("apiKey") || params.get("key") || params.get("token") || "";
+        baseUrl = normalizeBaseUrl(params.get("baseUrl") || params.get("baseURL") || params.get("address") || "https://chaiapi.com/v1");
+        preferredModel = (params.get("model") || "").trim();
+        manualChatModels = parseModelList(params.get("models"));
+        if (manualChatModels.length) detectedModelsByMode.chat = manualChatModels;
+        lastTaskId = localStorage.getItem("chaiai_last_task_id") || "";
+        loadChatSessions();
+        setMode("chat");
+        if (apiKey && !manualChatModels.length) detectModels({ mode: "chat", silent: true });
+      }
+
+      function readLaunchParams() {
+        const params = new URLSearchParams(location.search);
+        const hash = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
+        const hashParams = new URLSearchParams(hash);
+        hashParams.forEach((value, key) => {
+          if (!params.has(key)) params.set(key, value);
+        });
+        return params;
+      }
+
+      function parseModelList(value) {
+        return String(value || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function normalizeBaseUrl(value) {
+        let url = String(value || "").trim();
+        if (!url) return "https://chaiapi.com/v1";
+        url = url.replace(/\/+$/, "");
+        if (isExternalPage() && /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?/i.test(url)) {
+          return "https://chaiapi.com/v1";
+        }
+        if (!/\/v1(?:beta)?$/.test(url) && !url.includes("/v1beta")) url += "/v1";
+        return url;
+      }
+
+      function isExternalPage() {
+        return !/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(location.origin);
+      }
+
+      function setMode(mode) {
+        currentMode = mode;
+        const cfg = featureConfig[mode];
+        els.featureSelect.value = mode;
+        els.resultTitle.textContent = cfg.title;
+        els.promptLabel.textContent = cfg.promptLabel;
+        els.prompt.placeholder = cfg.placeholder;
+        els.streamField.classList.toggle("hidden", !cfg.showStream);
+        els.chatSessionField.classList.toggle("hidden", mode !== "chat");
+        els.optionRow.classList.toggle("hidden", !cfg.showOptions);
+        els.recoverBox.classList.toggle("hidden", mode !== "video" || !lastTaskId);
+        els.promptField.classList.toggle("hidden", mode === "chat");
+        els.referenceField.classList.toggle("hidden", mode !== "image");
+        els.chatComposer.classList.toggle("hidden", mode !== "chat");
+        els.status.classList.toggle("hidden", mode === "image" || mode === "video");
+        els.topPromptBankBtn.classList.toggle("hidden", mode !== "image" && mode !== "video");
+        document.querySelector(".actions").classList.toggle("hidden", mode === "chat");
+        els.modelField.classList.toggle("hidden", false);
+        els.detectModelsBtn.classList.toggle("hidden", false);
+        els.countField.classList.toggle("hidden", true);
+        els.sizeField.classList.toggle("hidden", true);
+        els.sizeLabel.textContent = cfg.sizeLabel || "分辨率";
+        els.countLabel.textContent = cfg.countLabel || "数量";
+        renderModelSelect(detectedModelsByMode[mode] || []);
+        updateModelOptions();
+        els.submitBtn.textContent = "开始";
+        resetOutputForMode();
+      }
+
+      function renderModelSelect(models) {
+        if (!models.length) {
+          els.model.innerHTML = `<option value="">暂无可用模型</option>`;
+          els.model.disabled = true;
+          return;
+        }
+        const renderedModels = preferredModel && currentMode === "chat" && !models.includes(preferredModel) ? [preferredModel, ...models] : models;
+        els.model.disabled = false;
+        els.model.innerHTML = renderedModels.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+        if (preferredModel && currentMode === "chat") els.model.value = preferredModel;
+      }
+
+      function updateModelOptions() {
+        const cfg = featureConfig[currentMode];
+        const perModel = modelOptions[currentMode]?.[els.model.value] || {};
+        const sizes = perModel.sizes || cfg.sizes || [];
+        const counts = perModel.counts || cfg.counts || [];
+        els.sizeLabel.textContent = perModel.sizeLabel || cfg.sizeLabel || "分辨率";
+        els.countLabel.textContent = perModel.countLabel || cfg.countLabel || "数量";
+        els.sizeField.classList.toggle("hidden", !sizes.length);
+        els.countField.classList.toggle("hidden", !counts.length);
+        els.size.innerHTML = sizes.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+        els.count.innerHTML = counts.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      }
+
+      function resetOutputForMode() {
+        els.status.textContent = "等待开始";
+        if (currentMode === "chat") {
+          renderActiveChat();
+          return;
+        }
+        const title = currentMode === "image" ? "生成的图片会显示在这里" : "视频任务进度会显示在这里";
+        const icon = currentMode === "image" ? "🖼️" : "🎬";
+        els.output.innerHTML = `<div class="empty"><div><div class="empty-visual">${icon}</div><h3>${title}</h3><p>左侧填写内容后点击开始。</p></div></div>`;
+      }
+
+      async function submit() {
+        if (!apiKey) {
+          showToast("请从 ChaiAPI 入口打开，系统会自动带入账户权限。");
+          return;
+        }
+        if (!els.model.value) {
+          writeError("当前功能暂无可用模型。请检查 ChaiAPI 令牌、令牌分组、渠道和模型权限。");
+          return;
+        }
+        const text = els.prompt.value.trim();
+        if (!text) {
+          showToast("请先输入提示词。");
+          return;
+        }
+        setBusy(true);
+        try {
+          if (currentMode === "chat") await runChat(text);
+          if (currentMode === "image") await runImage(text);
+          if (currentMode === "video") await runVideo(text);
+        } catch (error) {
+          writeError(error.message || String(error));
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function submitChat() {
+        if (!apiKey) {
+          showToast("请从 ChaiAPI 入口打开，系统会自动带入账户权限。");
+          return;
+        }
+        if (!els.model.value) {
+          writeError("当前令牌没有可用聊天模型。请检查 ChaiAPI 令牌、令牌分组、渠道和模型权限。");
+          return;
+        }
+        const text = els.chatInput.value.trim();
+        const attachments = [...chatAttachments];
+        if (!text && !attachments.length) {
+          showToast("请输入消息或粘贴图片。");
+          return;
+        }
+        setBusy(true);
+        try {
+          await runChat(text || "请描述这张图片。", attachments);
+          els.chatInput.value = "";
+          clearChatAttachments();
+        } catch (error) {
+          writeError(error.message || String(error));
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function detectModels(options = {}) {
+        const silent = !!options.silent;
+        const mode = options.mode || currentMode;
+        if (!apiKey) {
+          if (!silent) showToast("请从 ChaiAPI 入口打开，系统会自动带入账户权限。");
+          return;
+        }
+        const oldText = els.detectModelsBtn.textContent;
+        els.detectModelsBtn.disabled = true;
+        els.detectModelsBtn.textContent = silent ? "自动检测中..." : "检测中...";
+        try {
+          const res = await safeFetch(`${baseUrl}/models`, { headers: headers(false) });
+          if (!res.ok) throw new Error(await readError(res));
+          const data = await res.json();
+          const models = extractModelIds(data).filter((model) => isModelCandidateForMode(model, mode));
+          if (!models.length) {
+            const message = [
+              `当前令牌没有检测到可用于“${featureConfig[mode]?.title || mode}”的模型。`,
+              "",
+              "这通常不是网页问题，而是 ChaiAPI 令牌或令牌分组配置问题。",
+              "请检查：令牌是否有效、令牌所属分组是否有可用渠道、渠道是否配置了模型，以及该令牌是否有模型访问权限。",
+              "",
+              `请求地址：${baseUrl}/models`,
+              `原始响应：${JSON.stringify(data, null, 2)}`,
+            ].join("\n");
+            writeError(message);
+            detectedModelsByMode[mode] = [];
+            if (mode === currentMode) {
+              renderModelSelect([]);
+              updateModelOptions();
+            }
+            return;
+          }
+          detectedModelsByMode[mode] = models;
+          if (mode === "chat" && (!preferredModel || !models.includes(preferredModel))) preferredModel = models[0];
+          if (mode === currentMode) {
+            renderModelSelect(models);
+            updateModelOptions();
+          }
+          showToast(`${silent ? "自动" : ""}检测到 ${models.length} 个${featureConfig[mode]?.title || ""}模型，已填入列表。`);
+        } catch (error) {
+          const message = [
+            `${featureConfig[mode]?.title || "模型"}模型检测失败。`,
+            "",
+            "这通常不是网页问题，而是 ChaiAPI 令牌、令牌分组或模型列表权限问题。",
+            "请检查：令牌是否有效、令牌所属分组是否有可用渠道、渠道是否配置了模型，以及该令牌是否允许读取模型列表。",
+            "",
+            `请求地址：${baseUrl}/models`,
+            `错误信息：${error.message || String(error)}`,
+          ].join("\n");
+          writeError(message);
+          detectedModelsByMode[mode] = [];
+          if (mode === currentMode) {
+            renderModelSelect([]);
+            updateModelOptions();
+          }
+        } finally {
+          els.detectModelsBtn.disabled = false;
+          els.detectModelsBtn.textContent = oldText;
+        }
+      }
+
+      function extractModelIds(data) {
+        const source = Array.isArray(data) ? data : data?.data || data?.models || data?.result || [];
+        if (!Array.isArray(source)) return [];
+        const ids = source
+          .map((item) => typeof item === "string" ? item : item?.id || item?.name || item?.model)
+          .filter(Boolean)
+          .map(String);
+        return [...new Set(ids)].sort();
+      }
+
+      function isModelCandidateForMode(model, mode) {
+        if (mode === "image") return /image|dall-e|seedream|sora_image|gemini.*image/i.test(model);
+        if (mode === "video") return isVideoModelCandidate(model);
+        return !/image|dall-e|sora|video|tts|whisper|embedding|moderation|seedream|seedance|veo|veo3|kling|runway|hailuo|minimax|luma|ray|pika|vidu|wan|hunyuan.*video|pixverse|ltx|t2v|i2v|txt2video|img2video|grok.*video|imagine|motion|animate|animation/i.test(model);
+      }
+
+      function isVideoModelCandidate(model) {
+        if (/sora_image|seedream|image|dall-e|tts|whisper|embedding|moderation/i.test(model)) return false;
+        return /video|sora|veo|veo3|seedance|kling|runway|hailuo|minimax|luma|ray|pika|vidu|wan|hunyuan.*video|pixverse|ltx|t2v|i2v|txt2video|img2video|grok.*video|imagine|motion|animate|animation/i.test(model);
+      }
+
+      function headers(json = true) {
+        const result = { Authorization: `Bearer ${apiKey}` };
+        if (json) result["Content-Type"] = "application/json";
+        return result;
+      }
+
+      function loadChatSessions() {
+        try {
+          chatSessions = JSON.parse(localStorage.getItem("chaiai_chat_sessions") || "[]");
+        } catch {
+          chatSessions = [];
+        }
+        if (!Array.isArray(chatSessions) || !chatSessions.length) {
+          chatSessions = [createChatSession()];
+        }
+        activeChatId = localStorage.getItem("chaiai_active_chat_id") || chatSessions[0].id;
+        if (!chatSessions.some((session) => session.id === activeChatId)) activeChatId = chatSessions[0].id;
+        persistChatSessions();
+      }
+
+      function createChatSession(title = "新对话") {
+        const now = Date.now();
+        return {
+          id: `chat-${now}-${Math.random().toString(16).slice(2)}`,
+          title,
+          createdAt: now,
+          updatedAt: now,
+          messages: [],
+        };
+      }
+
+      function persistChatSessions() {
+        localStorage.setItem("chaiai_chat_sessions", JSON.stringify(chatSessions));
+        localStorage.setItem("chaiai_active_chat_id", activeChatId);
+        renderChatSessionSelect();
+      }
+
+      function getActiveChatSession() {
+        let session = chatSessions.find((item) => item.id === activeChatId);
+        if (!session) {
+          session = createChatSession();
+          chatSessions.unshift(session);
+          activeChatId = session.id;
+          persistChatSessions();
+        }
+        return session;
+      }
+
+      function renderChatSessionSelect() {
+        if (!els.chatSessionSelect) return;
+        els.chatSessionSelect.innerHTML = chatSessions
+          .slice()
+          .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+          .map((session) => `<option value="${escapeHtml(session.id)}">${escapeHtml(session.title || "新对话")}</option>`)
+          .join("");
+        els.chatSessionSelect.value = activeChatId;
+        els.deleteChatBtn.disabled = chatSessions.length <= 1;
+      }
+
+      function newChatSession() {
+        const session = createChatSession();
+        chatSessions.unshift(session);
+        activeChatId = session.id;
+        clearChatAttachments();
+        persistChatSessions();
+        renderActiveChat();
+      }
+
+      function deleteActiveChatSession() {
+        if (chatSessions.length <= 1) {
+          showToast("至少保留一个对话。");
+          return;
+        }
+        const activeIndex = chatSessions.findIndex((session) => session.id === activeChatId);
+        chatSessions = chatSessions.filter((session) => session.id !== activeChatId);
+        activeChatId = chatSessions[Math.max(0, activeIndex - 1)]?.id || chatSessions[0].id;
+        clearChatAttachments();
+        persistChatSessions();
+        renderActiveChat();
+      }
+
+      function selectChatSession(id) {
+        if (!chatSessions.some((session) => session.id === id)) return;
+        activeChatId = id;
+        clearChatAttachments();
+        persistChatSessions();
+        renderActiveChat();
+      }
+
+      function addChatMessage(role, text, attachments = []) {
+        const session = getActiveChatSession();
+        session.messages.push({
+          role,
+          text,
+          attachments: attachments.map((item) => ({
+            name: item.name,
+            mimeType: item.mimeType,
+            dataUrl: item.dataUrl,
+            base64: item.base64,
+          })),
+          createdAt: Date.now(),
+        });
+        if (role === "user" && session.title === "新对话") {
+          session.title = text.slice(0, 24) || "图片对话";
+        }
+        session.updatedAt = Date.now();
+        persistChatSessions();
+      }
+
+      function updateLastAssistantMessage(text) {
+        const session = getActiveChatSession();
+        const last = [...session.messages].reverse().find((message) => message.role === "assistant");
+        if (!last) return;
+        last.text = text || "";
+        session.updatedAt = Date.now();
+        persistChatSessions();
+      }
+
+      function getChatApiMessages() {
+        return getActiveChatSession().messages
+          .filter((message) => message.role === "user" || message.role === "assistant")
+          .map((message) => ({
+            role: message.role,
+            content: buildOpenAiChatContent(message.text, message.attachments || []),
+          }));
+      }
+
+      function buildOpenAiChatContent(text, attachments = []) {
+        return attachments.length ? [
+          { type: "text", text },
+          ...attachments.map((item) => ({
+            type: "image_url",
+            image_url: { url: item.dataUrl },
+          })),
+        ] : text;
+      }
+
+      function getGeminiContents() {
+        return getActiveChatSession().messages
+          .filter((message) => message.role === "user" || message.role === "assistant")
+          .map((message) => ({
+            role: message.role === "assistant" ? "model" : "user",
+            parts: [
+              { text: message.text || " " },
+              ...((message.attachments || []).map((item) => ({
+                inlineData: {
+                  mimeType: item.mimeType,
+                  data: item.base64,
+                },
+              }))),
+            ],
+          }));
+      }
+
+      function getClaudeMessages() {
+        return getActiveChatSession().messages
+          .filter((message) => message.role === "user" || message.role === "assistant")
+          .map((message) => ({
+            role: message.role,
+            content: buildClaudeChatContent(message.text, message.attachments || []),
+          }));
+      }
+
+      function buildClaudeChatContent(text, attachments = []) {
+        return attachments.length ? [
+          ...attachments.map((item) => ({
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: item.mimeType,
+              data: item.base64,
+            },
+          })),
+          { type: "text", text },
+        ] : text;
+      }
+
+      function renderActiveChat() {
+        chatStarted = false;
+        els.output.innerHTML = `<div class="chat-thread" id="chatThread"></div>`;
+        const thread = $("chatThread");
+        const session = getActiveChatSession();
+        if (!session.messages.length) {
+          appendMessage(thread, "system", "开始聊天后，对话会保存在浏览器里。");
+          return;
+        }
+        chatStarted = true;
+        session.messages.forEach((message) => {
+          appendMessage(thread, message.role, message.text, message.attachments || []);
+        });
+      }
+
+      async function runChat(text, attachments = []) {
+        const model = els.model.value;
+        if (model.startsWith("gemini-")) {
+          await runGeminiChat(text, model, attachments);
+          return;
+        }
+        if (model.startsWith("claude-")) {
+          await runClaudeChat(text, model, attachments);
+          return;
+        }
+        const stream = els.stream.value === "true";
+        addChatMessage("user", text, attachments);
+        const messages = getChatApiMessages();
+        const payload = {
+          model,
+          messages,
+          stream,
+        };
+        const thread = ensureChatThread();
+        appendMessage(thread, "user", text, attachments);
+        const assistant = appendMessage(thread, "assistant", "");
+        const res = await safeFetch(`${baseUrl}/chat/completions`, {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(await readError(res));
+        addChatMessage("assistant", "");
+
+        if (!stream) {
+          const data = await res.json();
+          assistant.textContent = data.choices?.[0]?.message?.content || data.output_text || JSON.stringify(data, null, 2);
+          updateLastAssistantMessage(assistant.textContent);
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let reply = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          for (const line of chunk.split("\n")) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const raw = trimmed.slice(5).trim();
+            if (raw === "[DONE]") continue;
+            try {
+              const json = JSON.parse(raw);
+              reply += json.choices?.[0]?.delta?.content || "";
+              assistant.textContent = reply || " ";
+              updateLastAssistantMessage(reply);
+            } catch {}
+          }
+        }
+      }
+
+      async function runGeminiChat(text, model, attachments = []) {
+        addChatMessage("user", text, attachments);
+        const thread = ensureChatThread();
+        appendMessage(thread, "user", text, attachments);
+        const assistant = appendMessage(thread, "assistant", "");
+        const payload = {
+          contents: getGeminiContents(),
+        };
+        const data = await postJson(`${baseUrl.replace(/\/v1$/, "")}/v1beta/models/${encodeURIComponent(model)}:generateContent`, payload);
+        addChatMessage("assistant", "");
+        assistant.textContent = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("") || JSON.stringify(data, null, 2);
+        updateLastAssistantMessage(assistant.textContent);
+      }
+
+      async function runClaudeChat(text, model, attachments = []) {
+        addChatMessage("user", text, attachments);
+        const thread = ensureChatThread();
+        appendMessage(thread, "user", text, attachments);
+        const assistant = appendMessage(thread, "assistant", "");
+        const payload = {
+          model,
+          max_tokens: 1024,
+          messages: getClaudeMessages(),
+        };
+        const res = await safeFetch(`${baseUrl}/messages`, {
+          method: "POST",
+          headers: { ...headers(), "anthropic-version": "2023-06-01", "x-api-key": apiKey },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(await readError(res));
+        const data = await res.json();
+        addChatMessage("assistant", "");
+        assistant.textContent = data.content?.map((part) => part.text || "").join("") || JSON.stringify(data, null, 2);
+        updateLastAssistantMessage(assistant.textContent);
+      }
+
+      async function runImage(prompt) {
+        const model = els.model.value;
+        const references = [...imageReferences];
+        if (model === "gemini-2.5-flash-image") {
+          const parts = [
+            { text: buildPromptWithImageHints(prompt) },
+            ...references.map((item) => ({
+              inlineData: {
+                mimeType: item.mimeType,
+                data: item.base64,
+              },
+            })),
+          ];
+          const data = await postJson(`${baseUrl.replace(/\/v1$/, "")}/v1beta/models/gemini-2.5-flash-image:generateContent`, {
+            contents: [{ role: "user", parts }],
+          });
+          renderGeminiImages(data, prompt);
+          if (references.length) clearImageReferences();
+          return;
+        }
+        if (model === "sora_image") {
+          const data = await postJson(`${baseUrl}/chat/completions`, {
+            model,
+            messages: [{
+              role: "user",
+              content: [
+                { type: "text", text: buildPromptWithImageHints(prompt) },
+                ...references.map((item) => ({
+                  type: "image_url",
+                  image_url: { url: item.dataUrl },
+                })),
+              ],
+            }],
+            stream: false,
+          });
+          renderJson(data, "图像生成结果");
+          if (references.length) clearImageReferences();
+          return;
+        }
+        const promptWithSize = buildPromptWithImageHints(prompt);
+        if (references.length) {
+          const data = await postImageEdit(model, promptWithSize, references);
+          renderImages(data.data || [], promptWithSize);
+          clearImageReferences();
+          return;
+        }
+        const payload = {
+          model,
+          prompt: promptWithSize,
+          n: 1,
+          response_format: "url",
+        };
+        if (model === "doubao-seedream-4-0-250828") {
+          payload.type = "normal";
+          payload.watermark = false;
+        }
+        const data = await postJson(`${baseUrl}/images/generations`, payload);
+        renderImages(data.data || [], payload.prompt);
+      }
+
+      async function postImageEdit(model, prompt, references) {
+        if (/gpt-image-2/i.test(model)) {
+          const payload = {
+            model,
+            prompt,
+            image: references.map((item) => item.dataUrl),
+            n: 1,
+            response_format: "url",
+          };
+          return postJson(`${baseUrl}/images/edits`, payload);
+        }
+
+        const form = new FormData();
+        form.append("model", model);
+        form.append("prompt", prompt);
+        form.append("n", "1");
+        form.append("response_format", "url");
+        references.forEach((item, index) => {
+          form.append("image", dataUrlToFile(item.dataUrl, item.name || `reference-${index + 1}.png`, item.mimeType));
+        });
+        return postForm(`${baseUrl}/images/edits`, form);
+      }
+
+      function buildPromptWithImageHints(prompt) {
+        const sizeHint = els.size.value;
+        return sizeHint && sizeHint !== "auto" ? `${prompt}，图片尺寸为 ${sizeHint}` : prompt;
+      }
+
+      async function runVideo(prompt) {
+        const model = els.model.value;
+        const form = new FormData();
+        const sizeHint = els.size.value;
+        const secondsHint = els.count.value;
+        const hintParts = [];
+        if (sizeHint && sizeHint !== "auto") hintParts.push(`画面尺寸/比例为 ${sizeHint}`);
+        if (secondsHint && secondsHint !== "auto") hintParts.push(`视频时长为 ${secondsHint} 秒`);
+        form.append("model", model);
+        form.append("prompt", hintParts.length ? `${prompt}，${hintParts.join("，")}` : prompt);
+        if (secondsHint && secondsHint !== "auto") form.append("seconds", secondsHint);
+        const task = await postForm(`${baseUrl}/videos`, form);
+        renderJson(task, "视频任务已提交");
+        const id = task.id || task.task_id;
+        if (id) {
+          lastTaskId = id;
+          localStorage.setItem("chaiai_last_task_id", id);
+          els.recoverBox.classList.toggle("hidden", currentMode !== "video" || !lastTaskId);
+          await pollVideo(id, 60);
+        }
+      }
+
+      async function recoverTask() {
+        if (!apiKey) {
+          showToast("请从 ChaiAPI 入口打开，系统会自动带入账户权限。");
+          return;
+        }
+        if (!lastTaskId) {
+          showToast("还没有可继续查看的视频任务。");
+          return;
+        }
+        setBusy(true);
+        try {
+          await pollVideo(lastTaskId, 1);
+        } catch (error) {
+          writeError(error.message || String(error));
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function pollVideo(id, times) {
+        for (let i = 0; i < times; i++) {
+          if (i > 0) await sleep(3000);
+          const data = await getJson(`${baseUrl}/videos/${encodeURIComponent(id)}`);
+          renderJson(data, `任务状态：${data.status || "unknown"}`);
+          if (data.video_url) {
+            renderVideo(data.video_url, data);
+            return;
+          }
+          if (data.status === "completed") {
+            const content = await getVideoContent(id);
+            renderTaskContent(content, data);
+            return;
+          }
+          if (data.status === "failed" || data.status === "cancelled") return;
+        }
+      }
+
+      async function getVideoContent(id) {
+        const res = await safeFetch(`${baseUrl}/videos/${encodeURIComponent(id)}/content`, { headers: headers(false) });
+        if (!res.ok) throw new Error(await readError(res));
+        const type = res.headers.get("content-type") || "";
+        if (type.includes("application/json")) return res.json();
+        const blob = await res.blob();
+        return { blobUrl: URL.createObjectURL(blob), contentType: type };
+      }
+
+      async function postJson(url, payload) {
+        const res = await safeFetch(url, { method: "POST", headers: headers(), body: JSON.stringify(payload) });
+        if (!res.ok) throw new Error(await readError(res));
+        return res.json();
+      }
+
+      async function postForm(url, form) {
+        const res = await safeFetch(url, { method: "POST", headers: headers(false), body: form });
+        if (!res.ok) throw new Error(await readError(res));
+        const text = await res.text();
+        try { return JSON.parse(text); } catch { return { text }; }
+      }
+
+      async function getJson(url) {
+        const res = await safeFetch(url, { headers: headers(false) });
+        if (!res.ok) throw new Error(await readError(res));
+        return res.json();
+      }
+
+      async function safeFetch(url, options = {}) {
+        try {
+          return await fetch(url, options);
+        } catch (error) {
+          const diagnosis = [
+            "网络请求失败，浏览器没有拿到接口响应。",
+            "",
+            `功能：${featureConfig[currentMode]?.title || currentMode}`,
+            `模型：${els.model?.value || "-"}`,
+            `页面来源：${location.origin}`,
+            `请求地址：${url}`,
+            `Base URL：${baseUrl}`,
+            `Key 状态：${apiKey ? "已传入" : "未传入"}`,
+            "",
+            "常见原因：",
+            "1. ChaiAPI 接口没有允许当前页面域名跨域访问（CORS）。",
+            "2. 当前临时公网隧道不稳定或被目标接口拦截。",
+            "3. 浏览器/网络阻止了跨站请求。",
+            "",
+            `原始错误：${error.message || String(error)}`,
+          ].join("\n");
+          throw new Error(diagnosis);
+        }
+      }
+
+      async function readError(res) {
+        const text = await res.text();
+        const baseMessage = `HTTP ${res.status}`;
+        let message = text || baseMessage;
+        try {
+          const json = JSON.parse(text);
+          message = json.error?.message || json.message || text || baseMessage;
+        } catch {}
+        if (/无可用渠道|distributor/i.test(message)) {
+          return [
+            message,
+            "",
+            "诊断：请求已经到达 ChaiAPI，并且令牌也被识别了；失败点在 ChaiAPI 的渠道路由层。",
+            "可能原因：当前令牌所属分组没有配置可用渠道，或请求的模型名没有被任何渠道声明支持。",
+            "你可以先点左侧“检测可用模型”。如果检测不到模型列表，需要让网站维护者确认该令牌的分组和渠道配置。",
+          ].join("\n");
+        }
+        return message;
+      }
+
+      function ensureChatThread() {
+        let thread = $("chatThread");
+        if (!chatStarted || !thread) {
+          els.output.innerHTML = `<div class="chat-thread" id="chatThread"></div>`;
+          chatStarted = true;
+          thread = $("chatThread");
+        }
+        return thread;
+      }
+
+      function appendMessage(thread, role, text, attachments = []) {
+        if (!thread) {
+          thread = ensureChatThread();
+        }
+        const div = document.createElement("div");
+        div.className = `message ${role}`;
+        const textNode = document.createElement("div");
+        textNode.textContent = text || " ";
+        div.appendChild(textNode);
+        if (attachments.length) {
+          const tray = document.createElement("div");
+          tray.className = "message-attachments";
+          attachments.forEach((item) => {
+            const img = document.createElement("img");
+            img.src = item.dataUrl;
+            img.alt = item.name || "粘贴图片";
+            tray.appendChild(img);
+          });
+          div.appendChild(tray);
+        }
+        thread.appendChild(div);
+        div.scrollIntoView({ block: "end" });
+        return div;
+      }
+
+      function handleChatPaste(event) {
+        const files = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith("image/"));
+        if (!files.length) return;
+        event.preventDefault();
+        Promise.all(files.map(readImageAttachment))
+          .then((items) => {
+            chatAttachments.push(...items);
+            renderChatAttachments();
+            showToast(`已添加 ${items.length} 张图片。`);
+          })
+          .catch((error) => showToast(error.message || String(error)));
+      }
+
+      function readImageAttachment(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = String(reader.result || "");
+            const base64 = dataUrl.split(",")[1] || "";
+            if (!base64) {
+              reject(new Error("图片读取失败。"));
+              return;
+            }
+            resolve({
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              name: file.name || "pasted-image",
+              mimeType: file.type || "image/png",
+              dataUrl,
+              base64,
+            });
+          };
+          reader.onerror = () => reject(new Error("图片读取失败。"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function renderChatAttachments() {
+        els.attachmentTray.classList.toggle("hidden", !chatAttachments.length);
+        els.attachmentTray.innerHTML = "";
+        chatAttachments.forEach((item) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "attachment-item";
+          wrapper.innerHTML = `<img src="${item.dataUrl}" alt="${escapeHtml(item.name)}" /><button class="attachment-remove" type="button" aria-label="移除图片">×</button>`;
+          wrapper.querySelector("button").addEventListener("click", () => {
+            chatAttachments = chatAttachments.filter((candidate) => candidate.id !== item.id);
+            renderChatAttachments();
+          });
+          els.attachmentTray.appendChild(wrapper);
+        });
+      }
+
+      function clearChatAttachments() {
+        chatAttachments = [];
+        renderChatAttachments();
+      }
+
+      function handleImageReferencePaste(event) {
+        if (currentMode !== "image") return;
+        const files = [...(event.clipboardData?.files || [])].filter((file) => file.type.startsWith("image/"));
+        if (!files.length) return;
+        event.preventDefault();
+        Promise.all(files.map(readImageAttachment))
+          .then((items) => {
+            imageReferences.push(...items);
+            renderImageReferences();
+            showToast(`已添加 ${items.length} 张参考图。`);
+          })
+          .catch((error) => showToast(error.message || String(error)));
+      }
+
+      function renderImageReferences() {
+        els.referenceTray.classList.toggle("hidden", !imageReferences.length);
+        els.referenceTray.innerHTML = "";
+        imageReferences.forEach((item) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "attachment-item";
+          wrapper.innerHTML = `<img src="${item.dataUrl}" alt="${escapeHtml(item.name)}" /><button class="attachment-remove" type="button" aria-label="移除参考图">×</button>`;
+          wrapper.querySelector("button").addEventListener("click", () => {
+            imageReferences = imageReferences.filter((candidate) => candidate.id !== item.id);
+            renderImageReferences();
+          });
+          els.referenceTray.appendChild(wrapper);
+        });
+      }
+
+      function clearImageReferences() {
+        imageReferences = [];
+        renderImageReferences();
+      }
+
+      function dataUrlToFile(dataUrl, name, mimeType) {
+        const byteString = atob(dataUrl.split(",")[1] || "");
+        const bytes = new Uint8Array(byteString.length);
+        for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i);
+        return new File([bytes], name, { type: mimeType || "image/png" });
+      }
+
+      function renderImages(items, prompt) {
+        if (!items.length) {
+          renderJson({ message: "接口返回成功，但没有图片数据。" }, "图像结果");
+          return;
+        }
+        let grid = els.output.querySelector(".image-grid");
+        if (!grid) {
+          els.output.innerHTML = `<div class="image-grid"></div>`;
+          grid = els.output.querySelector(".image-grid");
+        }
+        items.forEach((item, index) => {
+          const url = item.url || (item.b64_json ? `data:image/png;base64,${item.b64_json}` : "");
+          const card = document.createElement("article");
+          card.className = "card";
+          card.innerHTML = `
+            <button class="thumb" type="button" ${url ? "" : "disabled"}>${url ? `<img src="${url}" alt="生成图像 ${index + 1}" />` : "无图像"}</button>
+            <div class="card-body">
+              <div>${escapeHtml(prompt).slice(0, 100)}</div>
+              ${url ? `<a href="${url}" download="chaiai-image-${Date.now()}-${index + 1}.png">下载图片</a>` : ""}
+            </div>`;
+          const previewButton = card.querySelector(".thumb");
+          if (url) previewButton.addEventListener("click", () => openImagePreview(url));
+          grid.appendChild(card);
+        });
+        grid.lastElementChild?.scrollIntoView({ block: "nearest" });
+      }
+
+      function renderGeminiImages(data, prompt) {
+        const parts = data.candidates?.flatMap((candidate) => candidate.content?.parts || []) || [];
+        const images = parts
+          .map((part) => {
+            const inline = part.inlineData || part.inline_data;
+            if (!inline?.data) return null;
+            return {
+              url: `data:${inline.mimeType || inline.mime_type || "image/png"};base64,${inline.data}`,
+            };
+          })
+          .filter(Boolean);
+        if (images.length) {
+          renderImages(images, prompt);
+          return;
+        }
+        renderJson(data, "图像生成结果");
+      }
+
+      function renderVideo(url, data) {
+        els.output.innerHTML = `<video controls src="${url}"></video><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+      }
+
+      function renderTaskContent(content, meta = null) {
+        if (content.blobUrl) {
+          renderVideo(content.blobUrl, { contentType: content.contentType, meta });
+          return;
+        }
+        const url = content.video_url || content.url || content.data?.url;
+        if (url) renderVideo(url, content);
+        else renderJson(content, "任务结果");
+      }
+
+      function renderJson(data, title) {
+        els.output.innerHTML = `<div class="message system">${escapeHtml(title || "结果")}</div><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+      }
+
+      function writeError(message) {
+        els.output.innerHTML = `
+          <div class="message system error">
+            <div>${escapeHtml(message)}</div>
+            <div class="diagnostic-actions">
+              <button class="btn" id="copyDiagnosticBtn" type="button">复制诊断信息</button>
+            </div>
+          </div>`;
+        const copyButton = $("copyDiagnosticBtn");
+        if (copyButton) {
+          copyButton.addEventListener("click", () => {
+            navigator.clipboard.writeText(message);
+            showToast("诊断信息已复制");
+          });
+        }
+        els.status.textContent = "请求失败";
+        showToast(message);
+      }
+
+      function setBusy(busy) {
+        els.submitBtn.disabled = busy;
+        els.chatSendBtn.disabled = busy;
+        els.recoverBtn.disabled = busy;
+        els.submitBtn.textContent = busy ? "处理中..." : "开始";
+        els.chatSendBtn.textContent = busy ? "发送中..." : "发送";
+        els.status.textContent = busy ? "请求中" : "等待开始";
+      }
+
+      function openPromptBank() {
+        const items = promptBank[currentMode] || [];
+        if (!items.length) return;
+        els.promptBankList.innerHTML = "";
+        items.forEach((item) => {
+          const button = document.createElement("button");
+          button.className = "prompt-card";
+          button.type = "button";
+          button.innerHTML = `<strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text)}</span>`;
+          button.addEventListener("click", () => {
+            els.prompt.value = item.text;
+            closePromptBank();
+            els.prompt.focus();
+          });
+          els.promptBankList.appendChild(button);
+        });
+        els.promptBankModal.classList.remove("hidden");
+      }
+
+      function closePromptBank() {
+        els.promptBankModal.classList.add("hidden");
+      }
+
+      function openImagePreview(url) {
+        els.imagePreview.src = url;
+        els.imagePreviewModal.classList.remove("hidden");
+      }
+
+      function closeImagePreview() {
+        els.imagePreviewModal.classList.add("hidden");
+        els.imagePreview.removeAttribute("src");
+      }
+
+      function showToast(message) {
+        els.toast.textContent = message;
+        els.toast.classList.add("show");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 3000);
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      els.featureSelect.addEventListener("change", () => {
+        const mode = els.featureSelect.value;
+        setMode(mode);
+        if (apiKey) detectModels({ mode, silent: true });
+      });
+      els.model.addEventListener("change", updateModelOptions);
+      $("submitBtn").addEventListener("click", submit);
+      $("chatSendBtn").addEventListener("click", submitChat);
+      $("newChatBtn").addEventListener("click", newChatSession);
+      $("deleteChatBtn").addEventListener("click", deleteActiveChatSession);
+      $("chatSessionSelect").addEventListener("change", (event) => selectChatSession(event.target.value));
+      $("recoverBtn").addEventListener("click", recoverTask);
+      $("detectModelsBtn").addEventListener("click", detectModels);
+      $("topPromptBankBtn").addEventListener("click", openPromptBank);
+      $("closePromptBank").addEventListener("click", closePromptBank);
+      $("promptBankModal").addEventListener("click", (event) => {
+        if (event.target === els.promptBankModal) closePromptBank();
+      });
+      $("closeImagePreview").addEventListener("click", closeImagePreview);
+      $("imagePreviewModal").addEventListener("click", (event) => {
+        if (event.target === els.imagePreviewModal) closeImagePreview();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !els.imagePreviewModal.classList.contains("hidden")) closeImagePreview();
+      });
+      els.chatInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          submitChat();
+        }
+      });
+      els.chatInput.addEventListener("paste", handleChatPaste);
+      els.prompt.addEventListener("paste", handleImageReferencePaste);
+      $("clearBtn").addEventListener("click", () => {
+        els.prompt.value = "";
+        clearChatAttachments();
+        clearImageReferences();
+        resetOutputForMode();
+      });
+
+      init();
+    </script>
+  </body>
+</html>

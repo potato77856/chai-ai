@@ -1,0 +1,8 @@
+*.log
+*.err.log
+cloudflared*.log
+localhostrun*.log
+localtunnel*.log
+.wrangler/
+.DS_Store
+Thumbs.db
